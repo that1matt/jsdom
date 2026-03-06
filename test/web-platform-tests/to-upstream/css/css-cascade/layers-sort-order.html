@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>CSS Cascade: sort order (origin, importance, layers, inline)</title>
+<link rel="help" href="https://www.w3.org/TR/css-cascade-5/#cascading">
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+
+<style>
+  button span {
+    /* precaution once we check if text-align can even apply to inline containers */
+    display: block;
+  }
+
+  em {
+    text-align: right;
+  }
+
+  .left-align {
+    text-align: left;
+  }
+
+  .important-right-align {
+    text-align: right !important;
+  }
+</style>
+
+<body>
+  <div id="initial"></div>
+  <button id="parent">
+    <span id="child-inherit"></span>
+    <span id="style-inline" style="text-align: end">
+      Hello, World!
+      <span id="inherit-inline"></span>
+    </span>
+    <em id="tag-selector"></em>
+    <span class="left-align" id="class-selector"></span>
+    <span
+      class="important-right-align"
+      style="text-align: left;"
+      id="important-author-over-author"
+    ></span>
+    <input
+      type="file"
+      id="important-author-rule"
+      style="text-align: left !important;"
+    />
+    <span class="left-align" style="text-align: right;" id="inline-over-sheet"></span>
+  </button>
+
+  <div id="layer-test1"></div>
+  <div id="layer-test2"></div>
+  <div id="layer-test3"></div>
+  <div id="layer-test4"></div>
+  <div id="layer-test5"></div>
+</body>
+
+<script>
+  "use strict";
+  // Not yet testable: initial values and UA declarations are not exposed via getComputedStyle
+  // for properties not in propertiesWithResolvedValueImplemented.
+  // test("initial value"): expects "start" for an unstyled element
+  // test("user agent declaration"): expects "center" for <button>
+  // test("inherits"): expects parent UA value to be inherited
+
+  test(() => {
+    const element = document.querySelector("#style-inline");
+    assert_equals(
+      getComputedStyle(element).getPropertyValue("text-align"),
+      "end"
+    );
+  }, "inline styles are considered");
+
+  // Not yet testable: text-align inheritance is not implemented in getComputedStyle.
+  // test("inline styles get inherited"): expects "end" for child of inline-styled parent
+
+  test(() => {
+    const element = document.querySelector("#tag-selector");
+    assert_equals(
+      getComputedStyle(element).getPropertyValue("text-align"),
+      "right"
+    );
+  }, "tag selectors work");
+
+  test(() => {
+    const element = document.querySelector("#class-selector");
+    assert_equals(
+      getComputedStyle(element).getPropertyValue("text-align"),
+      "left"
+    );
+  }, "class rules are more specific than tag rules");
+
+  test(() => {
+    const element = document.querySelector("#important-author-over-author");
+    assert_equals(
+      getComputedStyle(element).getPropertyValue("text-align"),
+      "right"
+    );
+  }, "important author > normal author");
+
+  test(() => {
+    const element = document.querySelector("#important-author-rule");
+    assert_equals(
+      getComputedStyle(element).getPropertyValue("text-align"),
+      "left"
+    );
+  }, "important author inline > normal author");
+
+  test(() => {
+    const element = document.querySelector("#inline-over-sheet");
+    assert_equals(
+      getComputedStyle(element).getPropertyValue("text-align"),
+      "right"
+    );
+  }, "inline style > sheet style");
+
+  // @layer cascade tests
+  test(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @layer base { #layer-test1 { text-align: left; } }
+      #layer-test1 { text-align: right; }
+    `;
+    document.head.append(style);
+    const el = document.getElementById("layer-test1");
+    assert_equals(getComputedStyle(el).getPropertyValue("text-align"), "right");
+    style.remove();
+  }, "unlayered style beats layered style at same specificity");
+
+  test(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @layer A { #layer-test2 { text-align: left; } }
+      @layer B { #layer-test2 { text-align: right; } }
+    `;
+    document.head.append(style);
+    const el = document.getElementById("layer-test2");
+    assert_equals(getComputedStyle(el).getPropertyValue("text-align"), "right");
+    style.remove();
+  }, "later layer beats earlier layer");
+
+  test(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @layer A { #layer-test3 { text-align: right !important; } }
+      @layer B { #layer-test3 { text-align: left !important; } }
+      #layer-test3 { text-align: left !important; }
+    `;
+    document.head.append(style);
+    const el = document.getElementById("layer-test3");
+    assert_equals(getComputedStyle(el).getPropertyValue("text-align"), "right");
+    style.remove();
+  }, "important: earlier layer beats later layer, unlayered loses");
+
+  test(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @layer { #layer-test4 { text-align: left; } }
+      #layer-test4 { text-align: right; }
+    `;
+    document.head.append(style);
+    const el = document.getElementById("layer-test4");
+    assert_equals(getComputedStyle(el).getPropertyValue("text-align"), "right");
+    style.remove();
+  }, "unlayered style beats anonymous layer");
+
+  test(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @layer A { #layer-test5 { text-align: left; } }
+      #layer-test5 { text-align: right !important; }
+    `;
+    document.head.append(style);
+    const el = document.getElementById("layer-test5");
+    assert_equals(getComputedStyle(el).getPropertyValue("text-align"), "right");
+    style.remove();
+  }, "important inline beats layered normal");
+
+</script>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>CSS Cascade: @import with layer assignment</title>
+<link rel="help" href="https://www.w3.org/TR/css-cascade-5/#at-import">
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+
+<!-- Test 1: unlayered rule beats @import layer(A) at same specificity -->
+<style>
+  @import url("support/layer-color-red.css") layer(A);
+  #t1 { color: green; }
+</style>
+
+<!-- Test 2: layer B declared after A wins over @import into layer A -->
+<style>
+  @layer A, B;
+  @import url("support/layer-color-red.css") layer(A);
+  @import url("support/layer-color-green.css") layer(B);
+</style>
+
+<!-- Test 3: two @imports into the same named layer merge; later source order wins -->
+<style>
+  @import url("support/layer-color-red.css") layer(A);
+  @import url("support/layer-color-green.css") layer(A);
+</style>
+
+<!-- Test 4: anonymous @import layer; unlayered rule beats it -->
+<style>
+  @import url("support/layer-red-t4.css") layer;
+  #t4 { color: green; }
+</style>
+
+<!-- Test 5: @import with failing supports() condition is skipped -->
+<style>
+  @import url("support/layer-red-t5.css") supports(display: not-a-valid-value);
+</style>
+
+<body>
+  <div id="t1"></div>
+  <div id="t2"></div>
+  <div id="t3"></div>
+  <div id="t4"></div>
+  <div id="t5"></div>
+</body>
+
+<script>
+  "use strict";
+
+  test(() => {
+    assert_equals(
+      getComputedStyle(document.getElementById("t1")).color,
+      "rgb(0, 128, 0)"
+    );
+  }, "unlayered style beats @import layer(name)");
+
+  test(() => {
+    assert_equals(
+      getComputedStyle(document.getElementById("t2")).color,
+      "rgb(0, 128, 0)"
+    );
+  }, "later @import layer wins over earlier @import layer");
+
+  test(() => {
+    assert_equals(
+      getComputedStyle(document.getElementById("t3")).color,
+      "rgb(0, 128, 0)"
+    );
+  }, "same named @import layer merges: later source order wins");
+
+  test(() => {
+    assert_equals(
+      getComputedStyle(document.getElementById("t4")).color,
+      "rgb(0, 128, 0)"
+    );
+  }, "unlayered style beats anonymous @import layer");
+
+  test(() => {
+    assert_equals(
+      getComputedStyle(document.getElementById("t5")).color,
+      "rgb(0, 0, 0)"
+    );
+  }, "@import with failing supports() condition is skipped");
+</script>

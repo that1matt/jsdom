@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>getComputedStyle: resolved values for common properties</title>
+<link rel="help" href="https://www.w3.org/TR/css-cascade-5/#computed-value">
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+
+<div id="div"></div>
+
+<script>
+"use strict";
+
+function withStyle(css, fn) {
+  const style = document.createElement("style");
+  style.textContent = css;
+  document.head.append(style);
+  try {
+    fn();
+  } finally {
+    style.remove();
+  }
+}
+
+const div = document.getElementById("div");
+
+test(() => {
+  assert_equals(getComputedStyle(div).fontStyle, "normal");
+}, "font-style: initial value is normal");
+
+test(() => {
+  withStyle("#div { font-style: italic; }", () => {
+    assert_equals(getComputedStyle(div).fontStyle, "italic");
+  });
+}, "font-style: specified value is returned");
+
+test(() => {
+  assert_equals(getComputedStyle(div).fontWeight, "normal");
+}, "font-weight: initial value is normal");
+
+test(() => {
+  withStyle("#div { font-weight: bold; }", () => {
+    assert_equals(getComputedStyle(div).fontWeight, "bold");
+  });
+}, "font-weight: specified value is returned");
+
+test(() => {
+  assert_equals(getComputedStyle(div).textTransform, "none");
+}, "text-transform: initial value is none");
+
+test(() => {
+  withStyle("#div { text-transform: uppercase; }", () => {
+    assert_equals(getComputedStyle(div).textTransform, "uppercase");
+  });
+}, "text-transform: specified value is returned");
+
+test(() => {
+  assert_equals(getComputedStyle(div).textAlign, "start");
+}, "text-align: initial value is start");
+
+test(() => {
+  withStyle("#div { text-align: center; }", () => {
+    assert_equals(getComputedStyle(div).textAlign, "center");
+  });
+}, "text-align: specified value is returned");
+
+test(() => {
+  assert_equals(getComputedStyle(div).cursor, "auto");
+}, "cursor: initial value is auto");
+
+test(() => {
+  withStyle("#div { cursor: pointer; }", () => {
+    assert_equals(getComputedStyle(div).cursor, "pointer");
+  });
+}, "cursor: specified value is returned");
+
+test(() => {
+  assert_equals(getComputedStyle(div).overflow, "visible");
+}, "overflow: initial value is visible");
+
+test(() => {
+  withStyle("#div { overflow: hidden; }", () => {
+    assert_equals(getComputedStyle(div).overflow, "hidden");
+  });
+}, "overflow: specified value is returned");
+
+test(() => {
+  assert_equals(getComputedStyle(div).position, "static");
+}, "position: initial value is static");
+
+test(() => {
+  withStyle("#div { position: relative; }", () => {
+    assert_equals(getComputedStyle(div).position, "relative");
+  });
+}, "position: specified value is returned");
+
+test(() => {
+  assert_equals(getComputedStyle(div).opacity, "1");
+}, "opacity: initial value is 1");
+
+test(() => {
+  withStyle("#div { opacity: 0.5; }", () => {
+    assert_equals(getComputedStyle(div).opacity, "0.5");
+  });
+}, "opacity: specified value is returned");
+
+test(() => {
+  assert_equals(getComputedStyle(div).zIndex, "auto");
+}, "z-index: initial value is auto");
+
+test(() => {
+  assert_equals(getComputedStyle(div).boxSizing, "content-box");
+}, "box-sizing: initial value is content-box");
+</script>

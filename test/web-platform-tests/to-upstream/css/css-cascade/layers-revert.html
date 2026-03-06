@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<meta charset="utf-8" />
+<title>CSS Cascade: revert keyword</title>
+<link rel="help" href="https://www.w3.org/TR/css-cascade-5/#default">
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+
+<body>
+  <div id="test1"></div>
+  <div id="test2"></div>
+  <a id="test3" href="#">link</a>
+  <div id="test4"></div>
+</body>
+
+<script>
+  "use strict";
+
+  test(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      #test1 { color: green; }
+      #test1 { color: revert; }
+    `;
+    document.head.append(style);
+    // No UA color rule for plain div; reverts to initial canvastext = rgb(0, 0, 0)
+    assert_equals(
+      getComputedStyle(document.getElementById("test1")).color,
+      "rgb(0, 0, 0)"
+    );
+    style.remove();
+  }, "revert falls back to initial when no UA rule exists");
+
+  test(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      #test2 { visibility: hidden; }
+      #test2 { visibility: revert; }
+    `;
+    document.head.append(style);
+    assert_equals(
+      getComputedStyle(document.getElementById("test2")).visibility,
+      "visible"
+    );
+    style.remove();
+  }, "revert restores initial value for visibility");
+
+  test(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      #test3 { color: revert; }
+    `;
+    document.head.append(style);
+    // UA stylesheet sets :link { color: #0000EE }; revert on <a href> gives that value
+    assert_equals(
+      getComputedStyle(document.getElementById("test3")).color,
+      "rgb(0, 0, 238)"
+    );
+    style.remove();
+  }, "revert falls back to UA stylesheet value");
+
+  test(() => {
+    const style = document.createElement("style");
+    style.textContent = `
+      @layer base { #test4 { color: red; } }
+      #test4 { color: revert; }
+    `;
+    document.head.append(style);
+    // Unlayered revert beats layered red; no UA color rule for div → initial rgb(0,0,0)
+    assert_equals(
+      getComputedStyle(document.getElementById("test4")).color,
+      "rgb(0, 0, 0)"
+    );
+    style.remove();
+  }, "revert from unlayered rule beats layered color and reverts to initial");
+</script>

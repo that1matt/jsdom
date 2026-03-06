@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>CSS media query evaluation in getComputedStyle</title>
+<link rel="help" href="https://www.w3.org/TR/mediaqueries-5/">
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+
+<div id="div"></div>
+
+<script>
+"use strict";
+
+function withStyle(css, fn) {
+  const style = document.createElement("style");
+  style.textContent = css;
+  document.head.append(style);
+  try {
+    fn();
+  } finally {
+    style.remove();
+  }
+}
+
+test(() => {
+  withStyle("#div { color: green; }", () => {
+    assert_equals(getComputedStyle(document.getElementById("div")).color, "rgb(0, 128, 0)");
+  });
+}, "baseline: rule without @media applies");
+
+test(() => {
+  withStyle("@media all { #div { color: green; } }", () => {
+    assert_equals(getComputedStyle(document.getElementById("div")).color, "rgb(0, 128, 0)");
+  });
+}, "@media all applies");
+
+test(() => {
+  withStyle("@media screen { #div { color: green; } }", () => {
+    assert_equals(getComputedStyle(document.getElementById("div")).color, "rgb(0, 128, 0)");
+  });
+}, "@media screen applies");
+
+test(() => {
+  withStyle("@media print { #div { color: green; } }", () => {
+    assert_equals(getComputedStyle(document.getElementById("div")).color, "rgb(0, 0, 0)");
+  });
+}, "@media print does not apply");
+
+test(() => {
+  withStyle("@media not print { #div { color: green; } }", () => {
+    assert_equals(getComputedStyle(document.getElementById("div")).color, "rgb(0, 128, 0)");
+  });
+}, "@media not print applies");
+
+test(() => {
+  // jsdom default innerWidth is 1024px
+  withStyle("@media (min-width: 100px) { #div { color: green; } }", () => {
+    assert_equals(getComputedStyle(document.getElementById("div")).color, "rgb(0, 128, 0)");
+  });
+}, "@media (min-width: 100px) applies at default viewport width");
+
+test(() => {
+  // jsdom default innerWidth is 1024px
+  withStyle("@media (min-width: 2000px) { #div { color: green; } }", () => {
+    assert_equals(getComputedStyle(document.getElementById("div")).color, "rgb(0, 0, 0)");
+  });
+}, "@media (min-width: 2000px) does not apply at default viewport width");
+
+test(() => {
+  withStyle("@media screen and (min-width: 100px) { #div { color: green; } }", () => {
+    assert_equals(getComputedStyle(document.getElementById("div")).color, "rgb(0, 128, 0)");
+  });
+}, "@media screen and (min-width: 100px) applies");
+</script>
