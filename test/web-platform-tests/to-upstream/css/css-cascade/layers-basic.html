@@ -8,6 +8,7 @@
 
 <style>
   @layer foo, bar;
+
   @layer foo {
     p {
       color: yellow;
@@ -28,14 +29,14 @@
 <p id="testP">Test paragraph</p>
 
 <script>
-"use strict";
+  "use strict";
 
-test(() => {
-  const p = document.getElementById("testP");
-  const styles = window.getComputedStyle(p);
+  test(() => {
+    const p = document.getElementById("testP");
+    const styles = window.getComputedStyle(p);
 
-  assert_equals(styles.color, "rgb(255, 255, 0)");
-  assert_equals(styles.backgroundColor, "rgb(0, 0, 0)");
-  assert_equals(styles.fontSize, "64px");
-});
+    assert_equals(styles.color, "rgb(255, 255, 0)");
+    assert_equals(styles.backgroundColor, "rgb(0, 0, 0)");
+    assert_equals(styles.fontSize, "64px");
+  });
 </script>
